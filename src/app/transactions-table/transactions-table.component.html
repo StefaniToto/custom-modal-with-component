@@ -1,0 +1,265 @@
+<p>transactions-table works!</p>
+<div class="table-container">
+  <table
+    [dataSource]="dataSource"
+    mat-table
+    matSort
+    [matSortActive]="dataSource.sortColumn"
+    [matSortDirection]="dataSource.sortDirection"
+    [matSortDisableClear]="true"
+    matSortActive="name"
+    matSortDirection="asc"
+    multiTemplateDataRows
+    [trackBy]="dataSource.trackByFn"
+  >
+    <ng-container
+      *ngIf="!!hasDetails"
+      [matColumnDef]="dataSource.details_tab"
+    >
+      <th
+        *matHeaderCellDef
+        mat-header-cell
+        [ngClass]="dataSource.details_tab"
+      ></th>
+      <td
+        *matCellDef="let element"
+        mat-cell
+        [ngClass]="dataSource.details_tab"
+      >
+<!--        <a-->
+<!--          target="_blank"-->
+<!--          [routerLink]="[newTabRoute]"-->
+<!--          [queryParams]="{ id: element.Id }"-->
+<!--          (click)="$event.stopPropagation()"-->
+<!--        >-->
+<!--          <mat-icon class="mat-icon">open_in_new</mat-icon>-->
+<!--        </a>-->
+      </td>
+    </ng-container>
+
+    <ng-container
+      [matColumnDef]="dataSource.expansionArrow"
+      *ngIf="dataSource.withExpansion"
+    >
+      <th
+        *matHeaderCellDef
+        mat-header-cell
+        [ngClass]="dataSource.expansionArrow"
+      ></th>
+      <td
+        *matCellDef="let element"
+        mat-cell
+        [ngClass]="dataSource.expansionArrow"
+      >
+        <div >
+          <mat-icon>expand_more</mat-icon>
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="Value">
+      <th
+        *matHeaderCellDef
+        mat-header-cell
+        mat-sort-header
+        class="cell-Value"
+      >
+        Amount
+      </th>
+      <td *matCellDef="let element" mat-cell class="cell-Value">
+        {{ element.Value | number : '1.2-2' }}
+        <span *ngIf="element.Currency">{{
+            CURRENCIES[element.Currency]
+          }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="ShopName">
+      <th *matHeaderCellDef mat-header-cell>Shop Name</th>
+      <td *matCellDef="let element" mat-cell>
+        <a
+          [routerLink]="'/shops-and-machines/shop-info'"
+          [queryParams]="{ id: element.ShopPayaldoId }"
+          target="_blank"
+          [title]="element.ShopName"
+        >{{ element.ShopName }}</a
+        >
+      </td>
+    </ng-container>
+
+    <ng-container *ngIf="fromToLinks">
+      <ng-container matColumnDef="FromFullName">
+        <th
+          *matHeaderCellDef
+          mat-header-cell
+          mat-sort-header
+          class="cell-FromFullName"
+        >
+          From
+        </th>
+        <td *matCellDef="let element" mat-cell class="cell-FromFullName">
+          <a
+            target="_blank"
+            [routerLink]="['/accounts/account-details']"
+            [queryParams]="{ id: element.FromPayladoIdStr }"
+            (click)="$event.stopPropagation()"
+          >
+            {{ element.FromFullName }}
+          </a>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="ToFullName">
+        <th
+          *matHeaderCellDef
+          mat-header-cell
+          mat-sort-header
+          class="cell-ToFullName"
+        >
+          To
+        </th>
+        <td *matCellDef="let element" mat-cell class="cell-ToFullName">
+          <a
+            target="_blank"
+            [routerLink]="['/accounts/account-details']"
+            [queryParams]="{ id: element.ToPayladoIdStr }"
+            (click)="$event.stopPropagation()"
+          >
+            {{ element.ToFullName }}
+          </a>
+        </td>
+      </ng-container>
+    </ng-container>
+
+    <ng-container
+      *ngFor="let column of dataSource.genericColumns"
+      [matColumnDef]="column.property"
+    >
+      <th
+        *matHeaderCellDef
+        mat-header-cell
+        mat-sort-header
+        [disabled]="dataSource.disableSortOn.indexOf(column.property) != -1"
+        [ngClass]="'cell-' + column.property"
+      >
+        {{ column.name }}
+      </th>
+      <td
+        *matCellDef="let element"
+        mat-cell
+        [ngClass]="'cell-' + column.property"
+      >
+        {{ dataSource.getViewModelValue(element, column.property) }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th *matHeaderCellDef class="actions-cell" mat-header-cell></th>
+      <td *matCellDef="let element" class="actions-cell only-one" mat-cell>
+        <ng-container *ngIf="rowMenuActions?.length">
+          <button
+            type="button"
+            mat-icon-button
+            [matMenuTriggerFor]="actionsMenu"
+            (click)="$event.stopPropagation()"
+          >
+            <mat-icon>more_horiz</mat-icon>
+          </button>
+
+          <mat-menu
+            #actionsMenu="matMenu"
+            yPosition="below"
+            xPosition="before"
+          >
+            <ng-container *ngFor="let action of rowMenuActions">
+              <ng-container
+                [ngTemplateOutlet]="action"
+                [ngTemplateOutletContext]="{element}"
+              ></ng-container>
+            </ng-container>
+          </mat-menu>
+        </ng-container>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="spinner">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        [attr.colspan]="dataSource.columnsToDisplay.length"
+      >
+        <div class="spinner-container" *ngIf="dataSource.loading$ | async">
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        </div>
+      </th>
+    </ng-container>
+
+    <ng-container
+      matColumnDef="expandedDetail"
+      *ngIf="dataSource.withExpansion"
+    >
+      <td
+        mat-cell
+        *matCellDef="let element"
+        [attr.colspan]="dataSource.columnsToDisplay.length"
+      >
+<!--        <div-->
+<!--          *ngIf="element.Transactions && element.Transactions.length > 1"-->
+<!--          [@detailExpand]="-->
+<!--              element._index == dataSource.expandedElementIndex-->
+<!--                ? 'expanded'-->
+<!--                : 'collapsed'-->
+<!--            "-->
+<!--          (@detailExpand.done)="dataSource.detailExpandEvent($event, element)"-->
+<!--        >-->
+<!--&lt;!&ndash;          <app-transaction-expanded&ndash;&gt;-->
+<!--&lt;!&ndash;            *ngIf="element._expansionShowing"&ndash;&gt;-->
+<!--&lt;!&ndash;            [mainTransactionId]="element.MainAccountTransactionId"&ndash;&gt;-->
+<!--&lt;!&ndash;            [data]="element.Transactions"&ndash;&gt;-->
+<!--&lt;!&ndash;          >&ndash;&gt;-->
+<!--&lt;!&ndash;          </app-transaction-expanded>&ndash;&gt;-->
+<!--        </div>-->
+      </td>
+    </ng-container>
+
+    <tr *matHeaderRowDef="dataSource.columnsToDisplay" mat-header-row></tr>
+    <tr
+      *matHeaderRowDef="['spinner']"
+      mat-header-row
+      class="spinner-header bar"
+    ></tr>
+    <tr
+      *matRowDef="let element; columns: dataSource.columnsToDisplay"
+      [class.clickable]="
+          dataSource.withExpansion &&
+          element.Transactions &&
+          element.Transactions.length > 1
+        "
+      class="route-animations-elements element-row"
+      mat-row
+      [class.expandable]="dataSource.withExpansion"
+      [class.expanded-row]="
+          element.Transactions &&
+          element.Transactions.length > 1 &&
+          dataSource.expandedElementIndex === element._index
+        "
+      [@fadeInUp]
+    ></tr>
+    <ng-container *ngIf="dataSource.withExpansion">
+      <tr
+        mat-row
+        *matRowDef="let row; columns: ['expandedDetail']"
+        class="detail-row"
+      ></tr>
+    </ng-container>
+    <tr class="no-data" *matNoDataRow>
+      <td
+        class="mat-cell"
+        [attr.colspan]="dataSource.columnsToDisplay.length"
+        [@fadeInRight]
+      >
+        Nothing to see here, move along...
+      </td>
+    </tr>
+  </table>
+</div>
