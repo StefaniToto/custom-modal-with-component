@@ -1,0 +1,46 @@
+import { animate, style, transition, trigger } from '@angular/animations';
+
+export const fadeInRightAnimation = trigger('fadeInRight', [
+  transition(':enter', [
+    style({
+      transform: 'translateX(-2vw)',
+      opacity: 0,
+    }),
+    animate(
+      '0.4s cubic-bezier(0.35, 0, 0.25, 1)',
+      style({
+        transform: 'translateX(0)',
+        opacity: '*',
+      }),
+    ),
+  ]),
+]);
+
+export const fadeInOutRightAnimation = trigger('fadeInOutRight', [
+  transition(':enter', [
+    style({
+      transform: 'translateX(-2vw)',
+      opacity: 0,
+    }),
+    animate(
+      '0.4s cubic-bezier(0.35, 0, 0.25, 1)',
+      style({
+        transform: 'translateX(0)',
+        opacity: '*',
+      }),
+    ),
+  ]),
+  transition(':leave', [
+    style({
+      transform: 'translateX(0)',
+      opacity: '*',
+    }),
+    animate(
+      '0.4s cubic-bezier(0.35, 0, 0.25, 1)',
+      style({
+        transform: 'translateX(-2vw)',
+        opacity: 0,
+      }),
+    ),
+  ]),
+]);
